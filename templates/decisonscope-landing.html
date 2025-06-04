@@ -1,0 +1,1617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DecisionScope - Stop Guessing. Start Simulating.</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* CSS Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #1e3a8a;
+            --secondary-blue: #3b82f6;
+            --accent-teal: #14b8a6;
+            --dark-gray: #1f2937;
+            --medium-gray: #6b7280;
+            --light-gray: #f3f4f6;
+            --white: #ffffff;
+            --success-green: #10b981;
+            --error-red: #ef4444;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--dark-gray);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            transition: var(--transition);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: '';
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--dark-gray);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--secondary-blue);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent-teal);
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .mobile-menu {
+            display: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark-gray);
+        }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Section Styles */
+        section {
+            padding: 5rem 0;
+            position: relative;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, var(--light-gray) 0%, rgba(59, 130, 246, 0.1) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-text h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .hero-text p {
+            font-size: 1.25rem;
+            color: var(--medium-gray);
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.8s ease-out 0.2s;
+            animation-fill-mode: both;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-teal));
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: var(--transition);
+            animation: fadeInUp 0.8s ease-out 0.4s;
+            animation-fill-mode: both;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .hero-visual {
+            position: relative;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .data-visualization {
+            width: 100%;
+            height: 500px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        /* Animated nodes for hero visual */
+        .node {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: var(--accent-teal);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .connection {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--secondary-blue), transparent);
+            transform-origin: left center;
+            animation: flow 3s infinite;
+        }
+
+        /* Problem Section */
+        .problem {
+            background: var(--white);
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .section-header p {
+            font-size: 1.125rem;
+            color: var(--medium-gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .pain-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .pain-point {
+            background: var(--light-gray);
+            padding: 2.5rem;
+            border-radius: 16px;
+            text-align: center;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pain-point:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+        }
+
+        .pain-point-icon {
+            font-size: 3rem;
+            color: var(--secondary-blue);
+            margin-bottom: 1.5rem;
+        }
+
+        .pain-point h3 {
+            font-size: 1.5rem;
+            color: var(--dark-gray);
+            margin-bottom: 1rem;
+        }
+
+        .pain-point p {
+            color: var(--medium-gray);
+        }
+
+        /* Solution Section */
+        .solution {
+            background: linear-gradient(135deg, var(--light-gray) 0%, rgba(20, 184, 166, 0.1) 100%);
+        }
+
+        .process-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .step:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .step-number {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-teal));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+        }
+
+        .step h3 {
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--dark-gray);
+        }
+
+        /* Use Cases Section */
+        .use-cases {
+            background: white;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 0.75rem 2rem;
+            background: var(--light-gray);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--dark-gray);
+            transition: var(--transition);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-teal));
+            color: white;
+        }
+
+        .tab:hover:not(.active) {
+            background: #e5e7eb;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .use-case-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+
+        .use-case-text h3 {
+            font-size: 2rem;
+            color: var(--primary-blue);
+            margin-bottom: 1rem;
+        }
+
+        .benefits-list {
+            list-style: none;
+            margin-top: 1.5rem;
+        }
+
+        .benefits-list li {
+            padding: 0.75rem 0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .benefits-list li::before {
+            content: '✓';
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-teal);
+            color: white;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .use-case-visual {
+            background: var(--light-gray);
+            padding: 2rem;
+            border-radius: 12px;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Why Us Section */
+        .why-us {
+            background: linear-gradient(135deg, var(--light-gray) 0%, rgba(59, 130, 246, 0.1) 100%);
+        }
+
+        .advantages {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .advantage {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .advantage:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+
+        .advantage-icon {
+            font-size: 2.5rem;
+            color: var(--accent-teal);
+            margin-bottom: 1rem;
+        }
+
+        .advantage h3 {
+            color: var(--dark-gray);
+            margin-bottom: 0.5rem;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+            color: white;
+            text-align: center;
+        }
+
+        .cta-section h2 {
+            color: white;
+            margin-bottom: 1rem;
+        }
+
+        .cta-section p {
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 2rem;
+        }
+
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: white;
+            padding: 0 6px;
+            font-size: 0.875rem;
+            color: var(--medium-gray);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+        }
+
+        .submit-button {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: var(--accent-teal);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 1rem;
+        }
+
+        .submit-button:hover:not(:disabled) {
+            background: #0f9d8a;
+            transform: translateY(-2px);
+        }
+
+        .submit-button:disabled {
+            background: var(--medium-gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Simulation Section */
+        .simulation-section {
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .simulation-form-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: var(--light-gray);
+            padding: 3rem;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .simulation-form {
+            display: grid;
+            gap: 2rem;
+        }
+
+        .simulation-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            position: relative;
+        }
+
+        .simulation-form-group label {
+            font-weight: 600;
+            color: var(--dark-gray);
+            font-size: 1rem;
+        }
+
+        .simulation-form-group input,
+        .simulation-form-group select {
+            padding: 1rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: white;
+        }
+
+        .simulation-form-group input:focus,
+        .simulation-form-group select:focus {
+            outline: none;
+            border-color: var(--secondary-blue);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        /* Validation error styles */
+        .simulation-form-group input.error,
+        .simulation-form-group select.error {
+            border-color: var(--error-red);
+        }
+
+        .simulation-form-group input.error:focus,
+        .simulation-form-group select.error:focus {
+            border-color: var(--error-red);
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+        }
+
+        .error-message {
+            color: var(--error-red);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .simulation-button {
+            padding: 1.25rem 2rem;
+            background: linear-gradient(135deg, var(--secondary-blue), var(--accent-teal));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .simulation-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .simulation-button:disabled {
+            background: var(--medium-gray);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status-message {
+            margin-top: 2rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-align: center;
+            min-height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .status-message.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-green);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-message.error {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error-red);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .status-message.pending {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--secondary-blue);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--dark-gray);
+            color: white;
+            padding: 3rem 0;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: white;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.5);
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes flow {
+            0% {
+                transform: scaleX(0);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: scaleX(1);
+                opacity: 0;
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .mobile-menu {
+                display: block;
+            }
+
+            .hero-content {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-text h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero-visual {
+                display: none;
+            }
+
+            .use-case-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .section-header h2 {
+                font-size: 2rem;
+            }
+
+            .simulation-form-container {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo">DecisionScope</a>
+            <ul class="nav-links">
+                <li><a href="#hero">Home</a></li>
+                <li><a href="#problem">Challenge</a></li>
+                <li><a href="#solution">Solution</a></li>
+                <li><a href="#use-cases">Use Cases</a></li>
+                <li><a href="#why-us">Why Us</a></li>
+                <li><a href="#cta">Get Started</a></li>
+                <li><a href="#simulation">Simulate</a></li>
+            </ul>
+            <div class="mobile-menu">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="hero" class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>Stop Guessing. Start Simulating.</h1>
+                    <p>DecisionScope helps you visualize outcomes, mitigate risks, and optimize strategies using powerful business simulations and digital twins.</p>
+                    <a href="#cta" class="cta-button">Request a Free Consultation</a>
+                </div>
+                <div class="hero-visual">
+                    <div class="data-visualization">
+                        <!-- Animated nodes and connections -->
+                        <div class="node" style="top: 20%; left: 30%;"></div>
+                        <div class="node" style="top: 50%; left: 20%;"></div>
+                        <div class="node" style="top: 70%; left: 40%;"></div>
+                        <div class="node" style="top: 30%; left: 70%;"></div>
+                        <div class="node" style="top: 60%; left: 80%;"></div>
+                        
+                        <div class="connection" style="top: 20%; left: 30%; width: 200px; transform: rotate(25deg);"></div>
+                        <div class="connection" style="top: 50%; left: 20%; width: 180px; transform: rotate(-15deg);"></div>
+                        <div class="connection" style="top: 30%; left: 40%; width: 150px; transform: rotate(45deg);"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Problem Section -->
+    <section id="problem" class="problem">
+        <div class="container">
+            <div class="section-header">
+                <h2>High Stakes Decisions Keep You Up at Night?</h2>
+                <p>In today's complex world, 'gut feel' isn't enough. Unforeseen risks, resource conflicts, and uncertain ROI can derail even the best-laid plans.</p>
+            </div>
+            <div class="pain-points">
+                <div class="pain-point">
+                    <div class="pain-point-icon">
+                        <i class="fas fa-calendar-times"></i>
+                    </div>
+                    <h3>Project Overruns?</h3>
+                    <p>Deadlines slip, budgets balloon, and stakeholders lose confidence when reality doesn't match the plan.</p>
+                </div>
+                <div class="pain-point">
+                    <div class="pain-point-icon">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <h3>Strategic Uncertainty?</h3>
+                    <p>Major decisions feel like shots in the dark without visibility into potential outcomes and ripple effects.</p>
+                </div>
+                <div class="pain-point">
+                    <div class="pain-point-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3>Resource Bottlenecks?</h3>
+                    <p>Teams clash, priorities compete, and efficiency suffers when resource allocation is based on guesswork.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Solution Section -->
+    <section id="solution" class="solution">
+        <div class="container">
+            <div class="section-header">
+                <h2>Your Business, Reimagined as a Digital Sandbox</h2>
+                <p>We partner with you to build a dynamic 'Digital Twin' of your project or business scenario. Then, we leverage advanced simulation to run countless 'what-if' analyses, giving you unprecedented foresight.</p>
+            </div>
+            <div class="process-steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Model</h3>
+                    <p>We map your inputs including goals, resources, constraints, and risks into a comprehensive digital model.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Simulate</h3>
+                    <p>We run scenarios and test variables across thousands of possibilities to uncover optimal paths forward.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Decide</h3>
+                    <p>You get clear insights and visualizations that transform complex data into actionable intelligence.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases Section -->
+    <section id="use-cases" class="use-cases">
+        <div class="container">
+            <div class="section-header">
+                <h2>Tailored Solutions for Every Leader</h2>
+                <p>See how DecisionScope transforms decision-making across different roles and challenges.</p>
+            </div>
+            <div class="tabs">
+                <button class="tab active" onclick="showTab('pm')">Project Managers</button>
+                <button class="tab" onclick="showTab('ceo')">CEOs & Founders</button>
+                <button class="tab" onclick="showTab('coo')">COOs & Owners</button>
+            </div>
+            
+            <div id="pm" class="tab-content active">
+                <div class="use-case-grid">
+                    <div class="use-case-text">
+                        <h3>Forecast Timelines & Costs with Confidence</h3>
+                        <p>Transform project planning from hopeful estimates to data-driven predictions. See how delays cascade, identify critical paths, and communicate realistic expectations to stakeholders.</p>
+                        <ul class="benefits-list">
+                            <li>Create realistic schedules backed by simulation data</li>
+                            <li>Identify and mitigate risks before they impact delivery</li>
+                            <li>Align stakeholders with transparent, visual project forecasts</li>
+                            <li>Optimize resource allocation across project phases</li>
+                        </ul>
+                    </div>
+                    <div class="use-case-visual">
+                        <div style="text-align: center; color: var(--medium-gray);">
+                            <i class="fas fa-chart-gantt" style="font-size: 4rem; color: var(--secondary-blue);"></i>
+                            <p style="margin-top: 1rem;">Interactive Gantt Chart Simulation</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="ceo" class="tab-content">
+                <div class="use-case-grid">
+                    <div class="use-case-text">
+                        <h3>Validate Your Growth Strategy</h3>
+                        <p>Test market entries, product launches, and strategic pivots in a risk-free environment. See how different strategies play out before committing capital and resources.</p>
+                        <ul class="benefits-list">
+                            <li>Reduce investment risk with scenario planning</li>
+                            <li>Maximize ROI by testing strategies virtually first</li>
+                            <li>Gain competitive advantage through better foresight</li>
+                            <li>Make board-ready decisions backed by data</li>
+                        </ul>
+                    </div>
+                    <div class="use-case-visual">
+                        <div style="text-align: center; color: var(--medium-gray);">
+                            <i class="fas fa-chart-line" style="font-size: 4rem; color: var(--accent-teal);"></i>
+                            <p style="margin-top: 1rem;">ROI Forecast Dashboard</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="coo" class="tab-content">
+                <div class="use-case-grid">
+                    <div class="use-case-text">
+                        <h3>Optimize Your Resource Allocation</h3>
+                        <p>Eliminate bottlenecks and maximize efficiency by understanding how resources flow through your organization. Test different allocation strategies to find the optimal balance.</p>
+                        <ul class="benefits-list">
+                            <li>Increase operational efficiency by up to 30%</li>
+                            <li>Identify and eliminate resource bottlenecks</li>
+                            <li>Balance portfolio performance across initiatives</li>
+                            <li>Make data-driven staffing and budget decisions</li>
+                        </ul>
+                    </div>
+                    <div class="use-case-visual">
+                        <div style="text-align: center; color: var(--medium-gray);">
+                            <i class="fas fa-network-wired" style="font-size: 4rem; color: var(--primary-blue);"></i>
+                            <p style="margin-top: 1rem;">Resource Flow Heatmap</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why Us Section -->
+    <section id="why-us" class="why-us">
+        <div class="container">
+            <div class="section-header">
+                <h2>Beyond Spreadsheets: True Dynamic Insight</h2>
+                <p>Why DecisionScope delivers results where traditional planning falls short.</p>
+            </div>
+            <div class="advantages">
+                <div class="advantage">
+                    <div class="advantage-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3>Expert Guidance</h3>
+                    <p>We blend deep PM and business acumen with cutting-edge simulation technology to deliver insights that matter.</p>
+                </div>
+                <div class="advantage">
+                    <div class="advantage-icon">
+                        <i class="fas fa-puzzle-piece"></i>
+                    </div>
+                    <h3>Custom Models</h3>
+                    <p>Every business is unique. Our simulations are tailored specifically to your challenges, constraints, and goals.</p>
+                </div>
+                <div class="advantage">
+                    <div class="advantage-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Clear Visualizations</h3>
+                    <p>Complex data transformed into insights you can understand and act on immediately. No PhD required.</p>
+                </div>
+                <div class="advantage">
+                    <div class="advantage-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h3>Confidential & Secure</h3>
+                    <p>Your data is your most valuable asset. We maintain enterprise-grade security and strict confidentiality.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="cta" class="cta-section">
+        <div class="container">
+            <h2>Ready to See Your Future More Clearly?</h2>
+            <p>Let's explore how DecisionScope can help you tackle your most pressing challenges. Schedule a no-obligation consultation today.</p>
+            
+            <div class="form-container">
+                <form id="consultation-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="company">Company</label>
+                            <input type="text" id="company" name="company" required>
+                        </div>
+                        <div class="form-group full-width">
+                            <label for="challenge">Brief Description of Challenge (Optional)</label>
+                            <textarea id="challenge" name="challenge" rows="3" placeholder="Tell us about your current decision-making challenge..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-button">Schedule My Consultation</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- Simulation Section -->
+    <section id="simulation" class="simulation-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Start New Simulation</h2>
+                <p>Input your project parameters and generate a comprehensive simulation report with risk analysis and forecasting.</p>
+            </div>
+            
+            <div class="simulation-form-container">
+                <form id="simulation-form" class="simulation-form">
+                    <div class="simulation-form-group">
+                        <label for="project-name">Project Name:</label>
+                        <input type="text" id="project-name" name="projectName" required maxlength="100">
+                        <span class="error-message" id="project-name-error" role="alert"></span>
+                    </div>
+                    
+                    <div class="simulation-form-group">
+                        <label for="base-cost">Base Cost Estimate ($):</label>
+                        <input type="number" id="base-cost" name="baseCost" required min="0" step="0.01">
+                        <span class="error-message" id="base-cost-error" role="alert"></span>
+                    </div>
+                    
+                    <div class="simulation-form-group">
+                        <label for="base-duration">Base Duration (Days):</label>
+                        <input type="number" id="base-duration" name="baseDuration" required min="1" step="1">
+                        <span class="error-message" id="base-duration-error" role="alert"></span>
+                    </div>
+                    
+                    <div class="simulation-form-group">
+                        <label for="project-type">Project Type:</label>
+                        <select id="project-type" name="projectType" required>
+                            <option value="">--Please choose an option--</option>
+                            <option value="Software Development">Software Development</option>
+                            <option value="Infrastructure Rollout">Infrastructure Rollout</option>
+                            <option value="Marketing Campaign">Marketing Campaign</option>
+                            <option value="Construction Project">Construction Project</option>
+                            <option value="Research & Development">Research & Development</option>
+                            <option value="Business Process Change">Business Process Change</option>
+                        </select>
+                        <span class="error-message" id="project-type-error" role="alert"></span>
+                    </div>
+                    
+                    <button type="submit" id="run-simulation-button" class="simulation-button">
+                        Run Simulation & Generate Report
+                    </button>
+                </form>
+                
+                <div id="status-message" class="status-message">
+                    Ready to simulate.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-links">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Contact</a>
+            </div>
+            <p>&copy; 2024 DecisionScope. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    const offsetTop = target.offsetTop - 80;
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+
+        // Tab functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Consultation form submission
+        document.getElementById('consultation-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Get form data
+            const formData = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                company: document.getElementById('company').value,
+                challenge: document.getElementById('challenge').value
+            };
+            
+            // In a real implementation, this would send data to a server
+            console.log('Consultation form submitted:', formData);
+            
+            // Show success message
+            alert('Thank you for your interest! We\'ll be in touch within 24 hours to schedule your consultation.');
+            
+            // Reset form
+            this.reset();
+        });
+
+        // ========== ENHANCED CLIENT-SIDE VALIDATION ==========
+        
+        // Validation state object to track the validity of each field
+        const validationState = {
+            projectName: false,
+            baseCost: false,
+            baseDuration: false,
+            projectType: false
+        };
+
+        // Get form elements
+        const simulationForm = document.getElementById('simulation-form');
+        const projectNameInput = document.getElementById('project-name');
+        const baseCostInput = document.getElementById('base-cost');
+        const baseDurationInput = document.getElementById('base-duration');
+        const projectTypeSelect = document.getElementById('project-type');
+        const submitButton = document.getElementById('run-simulation-button');
+
+        // Get error message elements
+        const projectNameError = document.getElementById('project-name-error');
+        const baseCostError = document.getElementById('base-cost-error');
+        const baseDurationError = document.getElementById('base-duration-error');
+        const projectTypeError = document.getElementById('project-type-error');
+
+        /**
+         * Validate project name
+         * - Must not be empty or whitespace only
+         * - Must not exceed 100 characters
+         */
+        function validateProjectName() {
+            const value = projectNameInput.value;
+            const trimmedValue = value.trim();
+            
+            // Check if empty or whitespace only
+            if (!trimmedValue) {
+                showError(projectNameInput, projectNameError, 'Project name is required and cannot be empty.');
+                validationState.projectName = false;
+                return false;
+            }
+            
+            // Check length (should be enforced by maxlength, but double-check)
+            if (value.length > 100) {
+                showError(projectNameInput, projectNameError, 'Project name must not exceed 100 characters.');
+                validationState.projectName = false;
+                return false;
+            }
+            
+            // Valid
+            clearError(projectNameInput, projectNameError);
+            validationState.projectName = true;
+            return true;
+        }
+
+        /**
+         * Validate base cost
+         * - Must be a non-negative number
+         */
+        function validateBaseCost() {
+            const value = baseCostInput.value;
+            
+            // Check if empty (required attribute should catch this, but for consistency)
+            if (value === '') {
+                showError(baseCostInput, baseCostError, 'Base cost is required.');
+                validationState.baseCost = false;
+                return false;
+            }
+            
+            const numValue = parseFloat(value);
+            
+            // Check if valid number
+            if (isNaN(numValue)) {
+                showError(baseCostInput, baseCostError, 'Please enter a valid number.');
+                validationState.baseCost = false;
+                return false;
+            }
+            
+            // Check if non-negative
+            if (numValue < 0) {
+                showError(baseCostInput, baseCostError, 'Base cost must be a non-negative number.');
+                validationState.baseCost = false;
+                return false;
+            }
+            
+            // Valid
+            clearError(baseCostInput, baseCostError);
+            validationState.baseCost = true;
+            return true;
+        }
+
+        /**
+         * Validate base duration
+         * - Must be a positive integer (>= 1)
+         */
+        function validateBaseDuration() {
+            const value = baseDurationInput.value;
+            
+            // Check if empty
+            if (value === '') {
+                showError(baseDurationInput, baseDurationError, 'Base duration is required.');
+                validationState.baseDuration = false;
+                return false;
+            }
+            
+            const numValue = parseFloat(value);
+            
+            // Check if valid number
+            if (isNaN(numValue)) {
+                showError(baseDurationInput, baseDurationError, 'Please enter a valid number.');
+                validationState.baseDuration = false;
+                return false;
+            }
+            
+            // Check if integer
+            if (!Number.isInteger(numValue)) {
+                showError(baseDurationInput, baseDurationError, 'Base duration must be a whole number (integer).');
+                validationState.baseDuration = false;
+                return false;
+            }
+            
+            // Check if positive (>= 1)
+            if (numValue < 1) {
+                showError(baseDurationInput, baseDurationError, 'Base duration must be at least 1 day.');
+                validationState.baseDuration = false;
+                return false;
+            }
+            
+            // Valid
+            clearError(baseDurationInput, baseDurationError);
+            validationState.baseDuration = true;
+            return true;
+        }
+
+        /**
+         * Validate project type
+         * - Must select a valid option
+         */
+        function validateProjectType() {
+            const value = projectTypeSelect.value;
+            
+            // Check if empty (no selection)
+            if (!value) {
+                showError(projectTypeSelect, projectTypeError, 'Please select a project type.');
+                validationState.projectType = false;
+                return false;
+            }
+            
+            // Valid
+            clearError(projectTypeSelect, projectTypeError);
+            validationState.projectType = true;
+            return true;
+        }
+
+        /**
+         * Show error message for a field
+         */
+        function showError(inputElement, errorElement, message) {
+            inputElement.classList.add('error');
+            errorElement.textContent = message;
+            errorElement.classList.add('show');
+            
+            // Set ARIA attributes for accessibility
+            inputElement.setAttribute('aria-invalid', 'true');
+            inputElement.setAttribute('aria-describedby', errorElement.id);
+        }
+
+        /**
+         * Clear error message for a field
+         */
+        function clearError(inputElement, errorElement) {
+            inputElement.classList.remove('error');
+            errorElement.textContent = '';
+            errorElement.classList.remove('show');
+            
+            // Remove ARIA attributes
+            inputElement.setAttribute('aria-invalid', 'false');
+            inputElement.removeAttribute('aria-describedby');
+        }
+
+        /**
+         * Check if all fields are valid and update submit button state
+         */
+        function updateSubmitButtonState() {
+            const allValid = Object.values(validationState).every(isValid => isValid);
+            submitButton.disabled = !allValid;
+        }
+
+        /**
+         * Validate all fields
+         */
+        function validateAllFields() {
+            validateProjectName();
+            validateBaseCost();
+            validateBaseDuration();
+            validateProjectType();
+            updateSubmitButtonState();
+        }
+
+        // Add event listeners for real-time validation
+        projectNameInput.addEventListener('input', () => {
+            validateProjectName();
+            updateSubmitButtonState();
+        });
+
+        projectNameInput.addEventListener('blur', () => {
+            validateProjectName();
+            updateSubmitButtonState();
+        });
+
+        baseCostInput.addEventListener('input', () => {
+            validateBaseCost();
+            updateSubmitButtonState();
+        });
+
+        baseCostInput.addEventListener('blur', () => {
+            validateBaseCost();
+            updateSubmitButtonState();
+        });
+
+        baseDurationInput.addEventListener('input', () => {
+            validateBaseDuration();
+            updateSubmitButtonState();
+        });
+
+        baseDurationInput.addEventListener('blur', () => {
+            validateBaseDuration();
+            updateSubmitButtonState();
+        });
+
+        projectTypeSelect.addEventListener('change', () => {
+            validateProjectType();
+            updateSubmitButtonState();
+        });
+
+        projectTypeSelect.addEventListener('blur', () => {
+            validateProjectType();
+            updateSubmitButtonState();
+        });
+
+        // Perform initial validation on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            validateAllFields();
+        });
+
+        // Simulation form submission
+        simulationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Perform final validation before submission
+            validateAllFields();
+            
+            // Check if all fields are valid
+            if (!Object.values(validationState).every(isValid => isValid)) {
+                // Focus on the first invalid field
+                if (!validationState.projectName) projectNameInput.focus();
+                else if (!validationState.baseCost) baseCostInput.focus();
+                else if (!validationState.baseDuration) baseDurationInput.focus();
+                else if (!validationState.projectType) projectTypeSelect.focus();
+                
+                return; // Don't submit
+            }
+            
+            // Get element references
+            const statusMessageDiv = document.getElementById('status-message');
+            const submitButton = document.getElementById('run-simulation-button');
+            
+            // UI feedback - pending state
+            submitButton.disabled = true;
+            statusMessageDiv.textContent = 'Running simulation, please wait...';
+            statusMessageDiv.className = 'status-message pending';
+            
+            // Data capture
+            const projectName = projectNameInput.value.trim(); // Trim whitespace
+            const baseCost = parseFloat(baseCostInput.value);
+            const baseDuration = parseInt(baseDurationInput.value);
+            const projectType = projectTypeSelect.value;
+            
+            // JSON payload construction
+            const simulationData = {
+                projectName: projectName,
+                baseCost: baseCost,
+                baseDuration: baseDuration,
+                projectType: projectType
+            };
+            
+            // Fetch API call
+            fetch('http://localhost:5000/simulate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(simulationData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    // Handle non-OK response
+                    return response.text().then(text => {
+                        throw new Error(`Server responded with status ${response.status}: ${text}`);
+                    });
+                }
+            })
+            .then(data => {
+                // Success path
+                const reportPath = data.report_path || 'Simulation_Report.xlsx';
+                statusMessageDiv.textContent = `Simulation Complete! Report '${reportPath}' generated successfully.`;
+                statusMessageDiv.className = 'status-message success';
+            })
+            .catch(error => {
+                // Error path (including network errors and server errors)
+                let errorMessage;
+                if (error.message.includes('fetch')) {
+                    errorMessage = `Network error or server unavailable. Please check your connection and ensure the local server is running. Error: ${error.message}`;
+                } else {
+                    errorMessage = `Error: Simulation failed. ${error.message}`;
+                }
+                statusMessageDiv.textContent = errorMessage;
+                statusMessageDiv.className = 'status-message error';
+            })
+            .finally(() => {
+                // Re-enable submit button and re-validate
+                submitButton.disabled = false;
+                validateAllFields();
+            });
+        });
+
+        // Navbar scroll effect
+        let lastScroll = 0;
+        window.addEventListener('scroll', () => {
+            const navbar = document.getElementById('navbar');
+            const currentScroll = window.pageYOffset;
+            
+            if (currentScroll > 100) {
+                navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+                navbar.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            } else {
+                navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+                navbar.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+            }
+            
+            lastScroll = currentScroll;
+        });
+
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -100px 0px'
+        };
+
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        // Observe all sections
+        document.querySelectorAll('section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
+            observer.observe(section);
+        });
+
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu').addEventListener('click', function() {
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks.style.display === 'flex') {
+                navLinks.style.display = 'none';
+            } else {
+                navLinks.style.display = 'flex';
+                navLinks.style.position = 'absolute';
+                navLinks.style.top = '100%';
+                navLinks.style.left = '0';
+                navLinks.style.right = '0';
+                navLinks.style.flexDirection = 'column';
+                navLinks.style.background = 'white';
+                navLinks.style.padding = '1rem';
+                navLinks.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
+            }
+        });
+
+        // Dynamic node animations
+        function animateNodes() {
+            const nodes = document.querySelectorAll('.node');
+            const connections = document.querySelectorAll('.connection');
+            
+            nodes.forEach((node, index) => {
+                const delay = index * 0.2;
+                node.style.animationDelay = `${delay}s`;
+            });
+            
+            connections.forEach((connection, index) => {
+                const delay = index * 0.3;
+                connection.style.animationDelay = `${delay}s`;
+            });
+        }
+
+        // Initialize animations
+        animateNodes();
+
+        // Add hover effects to pain points
+        document.querySelectorAll('.pain-point').forEach(point => {
+            point.addEventListener('mouseenter', function() {
+                this.querySelector('.pain-point-icon i').style.transform = 'scale(1.1)';
+            });
+            
+            point.addEventListener('mouseleave', function() {
+                this.querySelector('.pain-point-icon i').style.transform = 'scale(1)';
+            });
+        });
+
+        // Add hover effects to advantages
+        document.querySelectorAll('.advantage').forEach(advantage => {
+            advantage.addEventListener('mouseenter', function() {
+                this.querySelector('.advantage-icon i').style.transform = 'rotate(10deg) scale(1.1)';
+            });
+            
+            advantage.addEventListener('mouseleave', function() {
+                this.querySelector('.advantage-icon i').style.transform = 'rotate(0) scale(1)';
+            });
+        });
+
+        // Form field animations
+        document.querySelectorAll('.form-group input, .form-group textarea').forEach(field => {
+            field.addEventListener('focus', function() {
+                this.parentElement.querySelector('label').style.color = 'var(--accent-teal)';
+            });
+            
+            field.addEventListener('blur', function() {
+                this.parentElement.querySelector('label').style.color = 'var(--medium-gray)';
+            });
+        });
+    </script>
+</body>
+</html>
