@@ -701,6 +701,19 @@
             padding-bottom: 0.5rem;
             border-bottom: 2px solid #e5e7eb;
         }
+        
+        .phase-container {
+            margin-bottom: 2rem;
+        }
+
+        .phase-container > h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin: 2rem 0 1.5rem 0;
+            padding-bottom: 0.75rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
 
         #tasks-list, #risks-list {
             display: flex;
@@ -730,6 +743,22 @@
             color: var(--dark-gray);
             margin-bottom: 1rem;
             text-transform: capitalize;
+        }
+        
+        .review-item .review-item-header input[type="text"] {
+            width: 100%;
+            border: none;
+            background: transparent;
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--dark-gray);
+            margin-bottom: 1rem;
+            outline: none;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .review-item .review-item-header input[type="text"]:focus {
+            border-color: var(--secondary-blue);
         }
         
         .review-item-body {
@@ -772,17 +801,16 @@
         }
 
         .add-item-button {
-            margin-top: 1.5rem;
             padding: 0.75rem 1.5rem;
-            background: white;
+            background: transparent;
             color: var(--secondary-blue);
             border: 2px solid var(--secondary-blue);
             border-radius: 8px;
             font-weight: 600;
             cursor: pointer;
             transition: var(--transition);
-            display: inline-block;
-            text-align: center;
+            display: block;
+            margin: 1.5rem auto 0 auto;
         }
 
         .add-item-button:hover {
@@ -1256,7 +1284,6 @@
                     <h3>Project Tasks</h3>
                     <div id="tasks-list">
                         </div>
-                    <button id="add-task-button" class="add-item-button">Add New Task</button>
                 </div>
                 
                 <div id="review-risks-container">
@@ -1360,7 +1387,24 @@
 
             const createInputGroup = (paramKey, value, type = 'number', step = '1') => {
                 const paramId = `task-${phaseIndex}-${taskIndex}-${paramKey.replace('.', '-')}`;
-                const labelText = (paramKey.charAt(0).toUpperCase() + paramKey.slice(1)).replace(/[_\.]/g, ' ');
+                
+                let labelText;
+                const keyParts = paramKey.split('.');
+                const mainKey = keyParts[0];
+                const subKey = keyParts[1];
+
+                const paramNameMap = {
+                    'optimistic': 'Optimistic', 'most_likely': 'Most Likely', 'pessimistic': 'Pessimistic',
+                    'mean': 'Mean', 'std_dev': 'Standard Deviation', 'min': 'Minimum', 'max': 'Maximum'
+                };
+                const unitMap = { 'duration_params': 'Duration (Days)', 'cost_params': 'Cost ($)' };
+
+                if (paramNameMap[subKey] && unitMap[mainKey]) {
+                    labelText = `${paramNameMap[subKey]} ${unitMap[mainKey]}`;
+                } else {
+                    labelText = (paramKey.charAt(0).toUpperCase() + paramKey.slice(1)).replace(/[_\.]/g, ' ');
+                }
+
                 return `
                     <div class="form-group">
                         <label for="${paramId}">${labelText}</label>
@@ -1384,10 +1428,12 @@
                     }
                 }
             }
+            
+            const nameInput = `<div class="review-item-header"><input type="text" data-key="name" value="${task.name}"></div>`;
 
             item.innerHTML = `
                 <button class="delete-button" aria-label="Delete task">X</button>
-                <div class="review-item-header">Task: ${task.name}</div>
+                ${nameInput}
                 <div class="review-item-body">
                     ${paramsHtml}
                 </div>
@@ -1408,8 +1454,29 @@
 
             const createInputGroup = (paramKey, value, type = 'number', min = 0, max = undefined, step = '1') => {
                 const paramId = `risk-${riskIndex}-${paramKey.replace(/\./g, '-')}`;
-                const labelText = (paramKey.charAt(0).toUpperCase() + paramKey.slice(1)).replace(/[_\.]/g, ' ');
                 const maxAttr = max !== undefined ? `max="${max}"` : '';
+                
+                let labelText;
+                if (paramKey === 'probability') {
+                    labelText = 'Probability of Occurrence (%)';
+                } else {
+                    const keyParts = paramKey.split('.');
+                    const mainKey = keyParts[0];
+                    const subKey = keyParts[1];
+
+                    const paramNameMap = {
+                        'optimistic': 'Optimistic', 'most_likely': 'Most Likely', 'pessimistic': 'Pessimistic',
+                        'mean': 'Mean', 'std_dev': 'Standard Deviation', 'min': 'Minimum', 'max': 'Maximum'
+                    };
+                    const unitMap = { 'impact_days': 'Impact (Days)', 'impact_cost': 'Impact (Cost $)' };
+
+                    if (paramNameMap[subKey] && unitMap[mainKey]) {
+                        labelText = `${paramNameMap[subKey]} ${unitMap[mainKey]}`;
+                    } else {
+                        labelText = (paramKey.charAt(0).toUpperCase() + paramKey.slice(1)).replace(/[_\.]/g, ' ');
+                    }
+                }
+
                 return `
                     <div class="form-group">
                         <label for="${paramId}">${labelText}</label>
@@ -1436,9 +1503,11 @@
                 }
             }
 
+            const nameInput = `<div class="review-item-header"><input type="text" data-key="name" value="${risk.name}"></div>`;
+
             item.innerHTML = `
                 <button class="delete-button" aria-label="Delete risk">X</button>
-                <div class="review-item-header">Risk: ${risk.name}</div>
+                ${nameInput}
                 <div class="review-item-body">
                     ${paramsHtml}
                 </div>
@@ -1459,12 +1528,27 @@
 
             if (planData && planData.phases && Array.isArray(planData.phases)) {
                 planData.phases.forEach((phase, phaseIndex) => {
+                    const phaseContainer = document.createElement('div');
+                    phaseContainer.className = 'phase-container';
+
+                    const phaseHeading = document.createElement('h3');
+                    phaseHeading.textContent = phase.phaseName;
+                    phaseContainer.appendChild(phaseHeading);
+
                     if (phase.tasks && Array.isArray(phase.tasks)) {
                         phase.tasks.forEach((task, taskIndex) => {
                             const taskElement = createTaskItem(task, phaseIndex, taskIndex);
-                            tasksListContainer.appendChild(taskElement);
+                            phaseContainer.appendChild(taskElement);
                         });
                     }
+                    
+                    const addTaskButton = document.createElement('button');
+                    addTaskButton.className = 'add-item-button add-task-button';
+                    addTaskButton.textContent = 'Add Task to This Phase';
+                    addTaskButton.dataset.phaseIndex = phaseIndex;
+                    phaseContainer.appendChild(addTaskButton);
+
+                    tasksListContainer.appendChild(phaseContainer);
                 });
             }
 
@@ -1482,37 +1566,7 @@
             const reviewSection = document.getElementById('review-plan-section');
             if (!reviewSection) return;
 
-            // --- Event listener for Editing tasks and risks via event delegation ---
-            reviewSection.addEventListener('input', function(e) {
-                if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
-                    const reviewItem = e.target.closest('.review-item');
-                    if (!reviewItem) return;
-
-                    const newValue = parseFloat(e.target.value);
-                    if (isNaN(newValue)) return; // Don't update if not a valid number
-
-                    const keys = e.target.dataset.key.split('.');
-
-                    if (reviewItem.dataset.taskIndex !== undefined) {
-                        // It's a task
-                        const phaseIndex = parseInt(reviewItem.dataset.phaseIndex, 10);
-                        const taskIndex = parseInt(reviewItem.dataset.taskIndex, 10);
-                        currentPlanData.phases[phaseIndex].tasks[taskIndex][keys[0]][keys[1]] = newValue;
-                    } else if (reviewItem.dataset.riskIndex !== undefined) {
-                        // It's a risk
-                        const riskIndex = parseInt(reviewItem.dataset.riskIndex, 10);
-                        const riskObject = currentPlanData.risks[riskIndex];
-                        if (keys.length > 1) {
-                            riskObject[keys[0]][keys[1]] = newValue;
-                        } else {
-                            riskObject[keys[0]] = newValue;
-                        }
-                    }
-                    console.log('Plan data updated:', currentPlanData); // For debugging
-                }
-            });
-
-            // --- Event listener for Deleting and Adding items ---
+            // --- Event listener for Editing, Deleting, and Adding items via event delegation ---
             reviewSection.addEventListener('click', function(e) {
                 const target = e.target;
                 
@@ -1529,23 +1583,21 @@
                         const riskIndex = parseInt(reviewItem.dataset.riskIndex, 10);
                         currentPlanData.risks.splice(riskIndex, 1);
                     }
-                    // Re-render the UI to reflect the change
                     renderPlanForReview(currentPlanData);
                 }
 
                 // --- Adding Items ---
-                if (target.matches('#add-task-button')) {
-                    if (currentPlanData && currentPlanData.phases && currentPlanData.phases.length > 0) {
+                if (target.matches('.add-task-button')) {
+                    const phaseIndex = parseInt(target.dataset.phaseIndex, 10);
+                    if (currentPlanData && currentPlanData.phases[phaseIndex]) {
                         const newTask = {
                             id: `NewTask-${Date.now()}`,
                             name: "New Task",
                             duration_params: { type: "PERT", optimistic: 5, most_likely: 10, pessimistic: 15 },
                             cost_params: { type: "PERT", optimistic: 1000, most_likely: 2000, pessimistic: 4000 }
                         };
-                        currentPlanData.phases[0].tasks.push(newTask);
+                        currentPlanData.phases[phaseIndex].tasks.push(newTask);
                         renderPlanForReview(currentPlanData);
-                    } else {
-                        alert("Cannot add a task: No phases exist in the project plan.");
                     }
                 }
 
@@ -1554,13 +1606,45 @@
                          const newRisk = {
                             id: `NewRisk-${Date.now()}`,
                             name: "New Risk",
-                            probability: 25,
+                            probability: 20,
                             impact_days: { type: "PERT", optimistic: 2, most_likely: 5, pessimistic: 10 },
                             impact_cost: { type: "PERT", optimistic: 5000, most_likely: 10000, pessimistic: 20000 }
                         };
                         currentPlanData.risks.push(newRisk);
                         renderPlanForReview(currentPlanData);
                     }
+                }
+            });
+
+            reviewSection.addEventListener('input', function(e) {
+                if (e.target.tagName === 'INPUT' && e.target.dataset.key) {
+                    const reviewItem = e.target.closest('.review-item');
+                    if (!reviewItem) return;
+                    
+                    const keys = e.target.dataset.key.split('.');
+                    const value = e.target.type === 'number' ? parseFloat(e.target.value) : e.target.value;
+
+                    if (reviewItem.dataset.taskIndex !== undefined) {
+                        // It's a task
+                        const phaseIndex = parseInt(reviewItem.dataset.phaseIndex, 10);
+                        const taskIndex = parseInt(reviewItem.dataset.taskIndex, 10);
+                        const taskObject = currentPlanData.phases[phaseIndex].tasks[taskIndex];
+                        if (keys.length > 1) {
+                            taskObject[keys[0]][keys[1]] = value;
+                        } else {
+                            taskObject[keys[0]] = value;
+                        }
+                    } else if (reviewItem.dataset.riskIndex !== undefined) {
+                        // It's a risk
+                        const riskIndex = parseInt(reviewItem.dataset.riskIndex, 10);
+                        const riskObject = currentPlanData.risks[riskIndex];
+                        if (keys.length > 1) {
+                            riskObject[keys[0]][keys[1]] = value;
+                        } else {
+                            riskObject[keys[0]] = value;
+                        }
+                    }
+                    console.log('Plan data updated:', currentPlanData); // For debugging
                 }
             });
         });
