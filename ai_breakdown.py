@@ -21,27 +21,51 @@ if not GEMINI_API_KEY:
 # Configure the Generative AI library
 genai.configure(api_key=GEMINI_API_KEY)
 
+# --- Helper function to sanitize numeric parameters ---
+def _sanitize_numeric_param(param_value):
+    """
+    Sanitizes a parameter value that is expected to be numeric.
+    - Leaves existing numbers as is.
+    - Converts valid number strings (e.g., "10.5") to float.
+    - Converts "N/A" (or similar) to None.
+    - Extracts number from strings like "15 days", "15 N/A", "$2000".
+    - Returns None for any other non-numeric string or unexpected type.
+    """
+    if isinstance(param_value, (int, float)):
+        return param_value
+
+    if param_value is None:
+        return None
+
+    if isinstance(param_value, str):
+        cleaned_str = param_value.strip()
+        
+        if cleaned_str.upper() in ['N/A', 'NA', 'NOT APPLICABLE']:
+            return None
+
+        # Regex to find the first valid number (integer or float) in the string
+        match = re.match(r"^[^\d-]*(-?\d+(?:\.\d+)?)", cleaned_str)
+        if match:
+            try:
+                return float(match.group(1))
+            except (ValueError, IndexError):
+                return None
+        else:
+            return None # The string contains no parsable number at the start
+    
+    # Fallback for any other unexpected type
+    return None
+
+
 # --- The Core AI Function ---
 
 def get_detailed_breakdown(simple_data: dict) -> dict:
     """
     Takes simple project data (name, type, cost, duration) and uses Gemini
     to generate a detailed project breakdown suitable for Monte Carlo simulation.
-
-    Args:
-        simple_data: A dictionary containing projectName, projectType,
-                     baseCost, and baseDuration.
-
-    Returns:
-        A dictionary with the detailed project structure.
-
-    Raises:
-        ValueError: If the AI response cannot be parsed as valid JSON.
-        Exception: For API call errors or other issues.
     """
 
     # --- 1. Define the Target JSON Structure (Helper for the Prompt) ---
-    # This helps the AI understand exactly what we need.
     target_structure_example = """
     {
       "projectName": "...",
@@ -53,50 +77,20 @@ def get_detailed_breakdown(simple_data: dict) -> dict:
           "phaseName": "Phase 1: ...",
           "tasks": [
             {
-              "id": "T1", 
-              "name": "...", 
+              "id": "T1", "name": "...", 
               "duration_params": {
-                "type": "PERT", // Options: "PERT", "Triangular", "Normal", "Uniform"
-                // For PERT or Triangular:
-                "optimistic": 10, 
-                "most_likely": 15, 
-                "pessimistic": 25
-                // For Normal (use instead of above if type is "Normal"):
-                // "mean": 15, "std_dev": 3
-                // For Uniform (use instead of above if type is "Uniform"):
-                // "min": 10, "max": 20
-              },
-              "predecessors": []
-            },
-            {
-              "id": "T2", 
-              "name": "...", 
-              "duration_params": {
-                "type": "Normal",
-                "mean": 20,
-                "std_dev": 4
-              },
-              "predecessors": ["T1"]
+                "type": "PERT", // "PERT", "Triangular", "Normal", "Uniform"
+                "optimistic": 10, "most_likely": 15, "pessimistic": 25
+              }, "predecessors": []
             }
           ]
         }
       ],
       "risks": [
         {
-          "id": "R1",
-          "name": "...",
-          "probability": 0.15,
-          "impactDays": {
-            "type": "Triangular",
-            "optimistic": 5,
-            "most_likely": 10,
-            "pessimistic": 15
-          },
-          "impactCost": {
-            "type": "Normal",
-            "mean": 10000,
-            "std_dev": 2000
-          },
+          "id": "R1", "name": "...", "probability": 0.15,
+          "impactDays": {"type": "Triangular", "optimistic": 5, "most_likely": 10, "pessimistic": 15},
+          "impactCost": {"type": "Normal", "mean": 10000, "std_dev": 2000},
           "correlates": {}
         }
       ]
@@ -105,7 +99,7 @@ def get_detailed_breakdown(simple_data: dict) -> dict:
 
     # --- 2. Build the Prompt for the Gemini API ---
     prompt = f"""
-    You are an expert Project Manager AI with deep knowledge of statistical distributions. Your task is to expand high-level project information into a detailed, structured JSON plan suitable for Monte Carlo simulation using appropriate statistical distributions.
+    You are an expert Project Manager AI. Your task is to expand high-level project information into a detailed, structured JSON plan suitable for Monte Carlo simulation.
     
     It is **ESSENTIAL** that the plan you generate aligns **closely** with the user's target cost and duration.
 
@@ -119,41 +113,18 @@ def get_detailed_breakdown(simple_data: dict) -> dict:
     {target_structure_example}
 
     Instructions:
-    1. **Determine Core Parameters:** Based on the Project Type and Targets, propose a plausible 'teamSize' (integer between 2 and 15) and 'dailyCost' (integer between 400 and 800).
-    
-    2. **Generate Phases & Tasks:** Create 3-5 phases with 3-5 tasks each, relevant to the 'Project Type'. Assign unique 'id's (T1, T2...) and logical 'predecessors'.
-    
-    3. **Select Distribution Types for Task Durations:**
-       - For project management tasks (Software Development, Construction, Infrastructure Rollout), default to "PERT" distribution as it's well-suited for time estimates
-       - Use "Triangular" for tasks with less certain estimates or simpler scenarios
-       - Use "Normal" for well-understood, repetitive tasks with predictable variation
-       - Use "Uniform" only when any duration within a range is equally likely (rare for tasks)
-    
-    4. **Estimate Task Duration Parameters:** 
-       - For PERT/Triangular: Assign 'optimistic', 'most_likely', 'pessimistic' values
-       - For Normal: Assign 'mean' and 'std_dev' (standard deviation should be ~15-20% of mean for typical tasks)
-       - For Uniform: Assign 'min' and 'max'
-       - **CRITICAL:** The expected values (most_likely for PERT/Triangular, mean for Normal, midpoint for Uniform) along the critical path MUST closely match the 'Target Base Duration'
-    
-    5. **Generate Risks:** Create 3-5 relevant risks. Assign 'id's (R1, R2...). Estimate 'probability' (0.01-0.5).
-    
-    6. **Select Distribution Types for Risk Impacts:**
-       - Use "Normal" if impacts cluster around an average value
-       - Use "PERT" or "Triangular" when you can estimate optimistic/most_likely/pessimistic scenarios
-       - Use "Uniform" if any impact within a range is equally likely
-    
-    7. **Estimate Risk Impact Parameters:**
-       - Assign appropriate parameters based on the chosen distribution type
-       - Ensure parameters are realistic for the risk type and project context
-    
-    8. **Validate Cost:** Calculate estimated 'likely' cost: (Total Expected Duration * teamSize * dailyCost) + (Sum of (risk_probability * risk_expected_impact_cost))
-       - Expected duration = sum of most_likely/mean/midpoint values along critical path
-       - Expected impact cost = most_likely/mean/midpoint of each risk's cost impact
-       - This MUST closely match the 'Target Base Cost'. Adjust parameters while maintaining plausibility.
-    
-    9. **Set Fixed Values:** Set 'simRuns' to 10000. Set 'correlates' to {{}}.
-    
-    10. **Output Format:** Provide ONLY the valid JSON object. No extra text, no markdown. Include only the parameters relevant to each chosen distribution type.
+    1.  **Core Parameters:** Propose a plausible 'teamSize' (integer 2-15) and 'dailyCost' (integer 400-800).
+    2.  **Phases & Tasks:** Create 3-5 phases with 3-5 tasks each. Assign unique 'id's and logical 'predecessors'.
+    3.  **Task Durations:**
+        - Choose a 'type': "PERT", "Triangular", "Normal", or "Uniform". Default to "PERT" for project tasks.
+        - **CRITICAL:** Provide ONLY the parameters for the chosen type (e.g., for "PERT", only provide 'optimistic', 'most_likely', 'pessimistic'). DO NOT include parameters for other distributions (like 'mean' or 'min') in the same object.
+        - All parameter values MUST be JSON numbers (e.g., 15), NOT strings (e.g., "15").
+        - The expected duration (sum of 'most_likely' or 'mean' on the critical path) MUST align with the 'Target Base Duration'.
+    4.  **Risks:** Create 3-5 relevant risks. Estimate 'probability' (number between 0.01-0.5).
+    5.  **Risk Impacts:** For 'impactDays' and 'impactCost', choose a distribution 'type' and provide ONLY the relevant numeric parameters, just like with tasks.
+    6.  **Validation:** Ensure the calculated likely cost and duration are plausible and close to the targets.
+    7.  **Fixed Values:** Set 'simRuns' to 10000. Set 'correlates' to {{}}.
+    8.  **Output Format:** Provide ONLY the valid JSON object. No extra text, no markdown, no explanations.
 
     Generate the JSON plan now.
     """
@@ -161,53 +132,96 @@ def get_detailed_breakdown(simple_data: dict) -> dict:
     # --- 3. Call the Gemini API ---
     print(">>> Calling Gemini API to generate project breakdown...")
     try:
-        model = genai.GenerativeModel('gemini-2.5-flash-preview-05-20') # Ensure this is the working model name
+        model = genai.GenerativeModel('gemini-1.5-flash-latest') 
         response = model.generate_content(prompt)
         print(">>> Gemini API response received.")
         
-        # --- 4. Clean and Parse the Response ---
-        # Sometimes the AI might still wrap the JSON in markdown or add extra text.
-        # We'll try to clean it, but a good prompt is the best defense.
         raw_text = response.text
+        json_text = raw_text.strip()
+        # Clean markdown code blocks if they exist
+        if json_text.startswith("```json"):
+            json_text = json_text[7:]
+        if json_text.endswith("```"):
+            json_text = json_text[:-3]
+        json_text = json_text.strip()
         
-        # Use regex to find the JSON block (handles optional ```json ... ```)
-        match = re.search(r'```json\s*([\s\S]*?)\s*```|([\s\S]*)', raw_text)
-        if match:
-            json_text = match.group(1) if match.group(1) else match.group(2)
-            json_text = json_text.strip() # Remove leading/trailing whitespace
-        else:
-             json_text = raw_text.strip()
-
-        print(f">>> Attempting to parse JSON:\n{json_text[:500]}...") # Print first 500 chars
-
+        print(f">>> Attempting to parse JSON:\n{json_text[:500]}...")
         parsed_json = json.loads(json_text)
         print(">>> JSON parsed successfully!")
-        return parsed_json
 
+        # --- 4. Sanitize Parsed JSON Data ---
+        print(">>> Sanitizing JSON data...")
+        param_keys_to_sanitize = ["optimistic", "most_likely", "pessimistic", "mean", "std_dev", "min", "max"]
+
+        # Sanitize root-level numeric fields
+        for key in ["teamSize", "dailyCost", "simRuns"]:
+            if key in parsed_json:
+                parsed_json[key] = _sanitize_numeric_param(parsed_json[key])
+
+        # Sanitize tasks
+        if parsed_json.get("phases") and isinstance(parsed_json["phases"], list):
+            for phase in parsed_json["phases"]:
+                if phase.get("tasks") and isinstance(phase["tasks"], list):
+                    for task in phase["tasks"]:
+                        if task.get("duration_params") and isinstance(task["duration_params"], dict):
+                            for p_key in param_keys_to_sanitize:
+                                if p_key in task["duration_params"]:
+                                    task["duration_params"][p_key] = _sanitize_numeric_param(task["duration_params"][p_key])
+        
+        # Sanitize risks
+        if parsed_json.get("risks") and isinstance(parsed_json["risks"], list):
+            for risk in parsed_json["risks"]:
+                if "probability" in risk:
+                    risk["probability"] = _sanitize_numeric_param(risk["probability"])
+                
+                for impact_category in ["impactDays", "impactCost"]:
+                    if risk.get(impact_category) and isinstance(risk.get(impact_category), dict):
+                        for p_key in param_keys_to_sanitize:
+                            if p_key in risk[impact_category]:
+                                risk[impact_category][p_key] = _sanitize_numeric_param(risk[impact_category][p_key])
+        
+        print(">>> JSON data sanitized.")
+        
+        return parsed_json
+        
     except json.JSONDecodeError as e:
         print(f"!!! FATAL ERROR: Failed to parse Gemini response as JSON. Error: {e} !!!")
         print(f"!!! Raw Response was:\n{raw_text} !!!")
         raise ValueError(f"AI response was not valid JSON. Please check the prompt or AI model. Error: {e}")
     except Exception as e:
         print(f"!!! FATAL ERROR: An error occurred during Gemini API call or processing: {e} !!!")
-        # You might want to check response.prompt_feedback here for safety ratings
-        # print(f"Prompt Feedback: {response.prompt_feedback}")
         raise e
 
-# --- Example Usage (for testing this file directly) ---
+# --- Example Usage ---
 if __name__ == '__main__':
-    # This part runs only when you execute `python ai_breakdown.py` directly
-    test_input = {
-        "projectName": "New Mobile App Launch",
-        "projectType": "Software Development",
-        "baseCost": 150000,
-        "baseDuration": 90
+    # This block allows you to test the AI breakdown function directly.
+    # NOTE: You must have a .env file with a valid GEMINI_API_KEY for this to run.
+    print("--- Running AI Breakdown Test ---")
+    
+    # 1. Define some simple, high-level project data
+    sample_project_data = {
+        'projectName': 'New E-commerce Platform Launch',
+        'projectType': 'Web Development',
+        'baseCost': 250000,
+        'baseDuration': 120
     }
+    
+    print(f"\n[Step 1] Using sample data:\n{json.dumps(sample_project_data, indent=2)}")
+
+    # 2. Call the function to get the detailed breakdown from the AI
     try:
-        detailed_plan = get_detailed_breakdown(test_input)
-        # Pretty-print the output JSON
-        print("\n--- Generated Detailed Plan ---")
-        print(json.dumps(detailed_plan, indent=4))
-        print("\n--- AI Breakdown Module Test Successful ---")
+        detailed_plan = get_detailed_breakdown(sample_project_data)
+        
+        # 3. Print the resulting detailed plan
+        print("\n[Step 2] Successfully generated detailed plan:")
+        print(json.dumps(detailed_plan, indent=2))
+        
+        # You could now save this to a file, e.g., with open('output.json', 'w') as f: ...
+        print("\n--- AI Breakdown Test Complete ---")
+
+    except ValueError as e:
+        print(f"\n--- AI Breakdown Test Failed ---")
+        print(f"Error: {e}")
     except Exception as e:
-        print(f"\n--- AI Breakdown Module Test Failed: {e} ---")
+        print(f"\n--- AI Breakdown Test Failed with an unexpected error ---")
+        print(f"Error: {e}")

@@ -37,140 +37,135 @@ def landing_page():
     """
     return render_template('decisonscope-landing.html')
 
+@app.route('/generate-plan', methods=['POST'])
+def generate_plan():
+    """
+    Receives initial project data, validates it, calls the AI to
+    generate a detailed plan, and returns the plan as JSON.
+    """
+    print("\n--- /generate-plan endpoint hit (POST) ---")
+    try:
+        # 1. Get JSON data from the request
+        try:
+            frontend_data = request.get_json()
+            if frontend_data is None:
+                print("\n!!! Error: No JSON data found in request or JSON body is null. !!!\n")
+                return jsonify({'message': 'Error: Invalid JSON or Content-Type header. Ensure JSON payload is not null.'}), 400
+        except Exception as json_parsing_error:
+            print(f"\n!!! Error parsing JSON or incorrect Content-Type: {json_parsing_error} !!!\n")
+            traceback.print_exc()
+            return jsonify({'message': 'Error: Invalid JSON or Content-Type header.'}), 400
+
+        print(f"\n>>> Received JSON data from frontend: {frontend_data}")
+
+        # 2. Comprehensive Data Validation
+        validation_errors = []
+        
+        # 2.1 Validate projectName
+        project_name_from_frontend = frontend_data.get('projectName')
+        if project_name_from_frontend is None:
+            validation_errors.append("projectName is required.")
+        elif not isinstance(project_name_from_frontend, str):
+            validation_errors.append("projectName must be a string.")
+        elif not project_name_from_frontend.strip():
+            validation_errors.append("projectName must not be empty or consist only of whitespace.")
+        elif len(project_name_from_frontend) > MAX_PROJECT_NAME_LENGTH:
+            validation_errors.append(f"projectName must not exceed {MAX_PROJECT_NAME_LENGTH} characters.")
+        
+        # 2.2 Validate projectType
+        project_type_from_frontend = frontend_data.get('projectType')
+        if project_type_from_frontend is None:
+            validation_errors.append("projectType is required.")
+        elif not isinstance(project_type_from_frontend, str):
+            validation_errors.append("projectType must be a string.")
+        elif not project_type_from_frontend.strip():
+            validation_errors.append("projectType must not be empty.")
+        elif project_type_from_frontend not in VALID_PROJECT_TYPES:
+            validation_errors.append(f"projectType must be one of: {', '.join(sorted(VALID_PROJECT_TYPES))}.")
+        
+        # 2.3 Validate baseCost (optional field)
+        base_cost_from_frontend = frontend_data.get('baseCost')
+        if base_cost_from_frontend is not None:
+            if not isinstance(base_cost_from_frontend, (int, float)):
+                validation_errors.append("baseCost must be a number if provided.")
+            elif base_cost_from_frontend < 0:
+                validation_errors.append("baseCost must be a non-negative number.")
+            elif not isinstance(base_cost_from_frontend, bool) and (base_cost_from_frontend != base_cost_from_frontend or base_cost_from_frontend == float('inf') or base_cost_from_frontend == float('-inf')):
+                validation_errors.append("baseCost must be a valid finite number.")
+        
+        # 2.4 Validate baseDuration (optional field)
+        base_duration_from_frontend = frontend_data.get('baseDuration')
+        if base_duration_from_frontend is not None:
+            if not isinstance(base_duration_from_frontend, (int, float)):
+                validation_errors.append("baseDuration must be a number if provided.")
+            elif isinstance(base_duration_from_frontend, float):
+                if base_duration_from_frontend.is_integer():
+                    base_duration_from_frontend = int(base_duration_from_frontend)
+                    frontend_data['baseDuration'] = base_duration_from_frontend
+                else:
+                    validation_errors.append("baseDuration must be a whole number (integer).")
+            elif isinstance(base_duration_from_frontend, int) and base_duration_from_frontend < 1:
+                validation_errors.append("baseDuration must be a positive integer (>= 1).")
+        
+        # 2.5 If there are validation errors, return them
+        if validation_errors:
+            error_message = "Validation Error: " + " ".join(validation_errors)
+            print(f"\n!!! Validation failed: {error_message} !!!\n")
+            return jsonify({'message': error_message}), 400
+        
+        print("\n>>> All validation checks passed.")
+        
+        print(f"\n>>> Frontend Project Name: {project_name_from_frontend}")
+        print(f"    Frontend Project Type: {project_type_from_frontend}")
+        if base_cost_from_frontend is not None:
+            print(f"    Frontend Base Cost: {base_cost_from_frontend}")
+        if base_duration_from_frontend is not None:
+            print(f"    Frontend Base Duration: {base_duration_from_frontend}")
+
+        # 3. Call AI module to generate detailed project plan
+        print("\n>>> Calling get_detailed_breakdown...")
+        try:
+            detailed_input_data = get_detailed_breakdown(frontend_data)
+            print(">>> AI breakdown successful.")
+            if detailed_input_data and 'projectName' in detailed_input_data:
+                print(f"    AI Generated Project Name: {detailed_input_data.get('projectName')}")
+            else:
+                print("    AI breakdown returned data, but 'projectName' might be missing or data is None/unexpected.")
+                if detailed_input_data is None:
+                    detailed_input_data = {}
+                    print("    Warning: detailed_input_data from AI was None. Initializing to empty dict to preserve user targets.")
+
+            # Add original user targets for reporting purposes
+            detailed_input_data['targetBaseCost'] = base_cost_from_frontend
+            detailed_input_data['targetBaseDuration'] = base_duration_from_frontend
+            print(f"    Added user targets - targetBaseCost: {detailed_input_data['targetBaseCost']}, targetBaseDuration: {detailed_input_data['targetBaseDuration']}")
+
+            print("\n--- /generate-plan POST Request successful ---\n")
+            return jsonify(detailed_input_data), 200
+
+        except Exception as ai_error:
+            print(f"\n!!! An error occurred calling get_detailed_breakdown: {ai_error} !!!\n")
+            traceback.print_exc()
+            return jsonify({'message': f'Error generating project plan via AI: {str(ai_error)}'}), 500
+
+    except Exception as e:
+        print(f"\n!!! An unexpected error occurred in /generate-plan: {e} !!!\n")
+        traceback.print_exc()
+        return jsonify({'message': f'An unexpected server error occurred: {str(e)}'}), 500
+
 @app.route('/simulate', methods=['GET', 'POST']) # Allow GET for info, POST for simulation
 def run_simulation():
     if request.method == 'POST':
         print("\n--- /simulate endpoint hit (POST) ---")
         try:
-            # 1. Get JSON data from the request
-            try:
-                frontend_data = request.get_json()
-                if frontend_data is None:
-                    print("\n!!! Error: No JSON data found in request or JSON body is null. !!!\n")
-                    return jsonify({'message': 'Error: Invalid JSON or Content-Type header. Ensure JSON payload is not null.'}), 400
-            except Exception as json_parsing_error:
-                print(f"\n!!! Error parsing JSON or incorrect Content-Type: {json_parsing_error} !!!\n")
-                traceback.print_exc()
-                return jsonify({'message': 'Error: Invalid JSON or Content-Type header.'}), 400
-
-            print(f"\n>>> Received JSON data from frontend: {frontend_data}")
-
-            # 2. Comprehensive Data Validation
-            # Create a list to collect all validation errors
-            validation_errors = []
+            # The initial data fetching, validation, and AI call have been moved to /generate-plan.
+            # This endpoint will now expect the detailed plan to be sent in the request body.
             
-            # 2.1 Validate projectName
-            project_name_from_frontend = frontend_data.get('projectName')
-            
-            # Check if projectName exists and is a string
-            if project_name_from_frontend is None:
-                validation_errors.append("projectName is required.")
-            elif not isinstance(project_name_from_frontend, str):
-                validation_errors.append("projectName must be a string.")
-            elif not project_name_from_frontend.strip():  # Check for empty or whitespace-only
-                validation_errors.append("projectName must not be empty or consist only of whitespace.")
-            elif len(project_name_from_frontend) > MAX_PROJECT_NAME_LENGTH:
-                validation_errors.append(f"projectName must not exceed {MAX_PROJECT_NAME_LENGTH} characters.")
-            
-            # 2.2 Validate projectType
-            project_type_from_frontend = frontend_data.get('projectType')
-            
-            # Check if projectType exists and is a string
-            if project_type_from_frontend is None:
-                validation_errors.append("projectType is required.")
-            elif not isinstance(project_type_from_frontend, str):
-                validation_errors.append("projectType must be a string.")
-            elif not project_type_from_frontend.strip():  # Check for empty string
-                validation_errors.append("projectType must not be empty.")
-            elif project_type_from_frontend not in VALID_PROJECT_TYPES:
-                validation_errors.append(
-                    f"projectType must be one of: {', '.join(sorted(VALID_PROJECT_TYPES))}."
-                )
-            
-            # 2.3 Validate baseCost (optional field)
-            base_cost_from_frontend = frontend_data.get('baseCost')
-            
-            # baseCost can be null, but if provided, must be a non-negative number
-            if base_cost_from_frontend is not None:
-                # Check if it's a number (int or float)
-                if not isinstance(base_cost_from_frontend, (int, float)):
-                    validation_errors.append("baseCost must be a number if provided.")
-                elif base_cost_from_frontend < 0:
-                    validation_errors.append("baseCost must be a non-negative number.")
-                # Additional check for NaN or infinity
-                elif not isinstance(base_cost_from_frontend, bool) and (
-                    base_cost_from_frontend != base_cost_from_frontend or  # NaN check
-                    base_cost_from_frontend == float('inf') or 
-                    base_cost_from_frontend == float('-inf')
-                ):
-                    validation_errors.append("baseCost must be a valid finite number.")
-            
-            # 2.4 Validate baseDuration (optional field)
-            base_duration_from_frontend = frontend_data.get('baseDuration')
-            
-            # baseDuration can be null, but if provided, must be a positive integer
-            if base_duration_from_frontend is not None:
-                # Check if it's a number first
-                if not isinstance(base_duration_from_frontend, (int, float)):
-                    validation_errors.append("baseDuration must be a number if provided.")
-                # If it's a float, check if it's a whole number
-                elif isinstance(base_duration_from_frontend, float):
-                    if base_duration_from_frontend.is_integer():
-                        # Convert to int for further validation
-                        base_duration_from_frontend = int(base_duration_from_frontend)
-                        frontend_data['baseDuration'] = base_duration_from_frontend
-                    else:
-                        validation_errors.append("baseDuration must be a whole number (integer).")
-                # Now check if it's positive (only if we haven't already found it's not an integer)
-                elif isinstance(base_duration_from_frontend, int) and base_duration_from_frontend < 1:
-                    validation_errors.append("baseDuration must be a positive integer (>= 1).")
-            
-            # 2.5 If there are validation errors, return them
-            if validation_errors:
-                # Join all errors into a single message
-                error_message = "Validation Error: " + " ".join(validation_errors)
-                print(f"\n!!! Validation failed: {error_message} !!!\n")
-                return jsonify({'message': error_message}), 400
-            
-            # If we reach here, all validation passed
-            print("\n>>> All validation checks passed.")
-            
-            # Log received project details before AI call
-            print(f"\n>>> Frontend Project Name: {project_name_from_frontend}")
-            print(f"    Frontend Project Type: {project_type_from_frontend}")
-            if base_cost_from_frontend is not None:
-                print(f"    Frontend Base Cost: {base_cost_from_frontend}")
-            if base_duration_from_frontend is not None:
-                print(f"    Frontend Base Duration: {base_duration_from_frontend}")
-
-            # 3. Call AI module to generate detailed project plan
-            # This section replaces the old sample_input_data manipulation
-            print("\n>>> Calling get_detailed_breakdown...")
-            try:
-                # Call the AI module to generate the detailed plan
-                detailed_input_data = get_detailed_breakdown(frontend_data)
-                print(">>> AI breakdown successful.")
-                if detailed_input_data and 'projectName' in detailed_input_data:
-                    print(f"    AI Generated Project Name: {detailed_input_data.get('projectName')}")
-                else:
-                    # This case might indicate an issue with the AI's output structure
-                    print("    AI breakdown returned data, but 'projectName' might be missing or data is None/unexpected.")
-                    if detailed_input_data is None: # Specifically if AI returns None
-                        # Initialize to empty dict to allow adding target values
-                        detailed_input_data = {}
-                        print("    Warning: detailed_input_data from AI was None. Initializing to empty dict to preserve user targets.")
-
-                # Add original user targets for reporting purposes
-                # These keys ('targetBaseCost', 'targetBaseDuration') are what report_generator.py now expects
-                detailed_input_data['targetBaseCost'] = base_cost_from_frontend
-                detailed_input_data['targetBaseDuration'] = base_duration_from_frontend
-                print(f"    Added user targets - targetBaseCost: {detailed_input_data['targetBaseCost']}, targetBaseDuration: {detailed_input_data['targetBaseDuration']}")
-
-            except Exception as ai_error:
-                print(f"\n!!! An error occurred calling get_detailed_breakdown: {ai_error} !!!\n")
-                traceback.print_exc() # Ensure 'import traceback' is present
-                # Return a specific error message to the frontend
-                return jsonify({'message': f'Error generating project plan via AI: {str(ai_error)}'}), 500
+            # 1. Get detailed plan data from the request
+            detailed_input_data = request.get_json() # This now receives the output of /generate-plan
+            if detailed_input_data is None:
+                 print("\n!!! Error: No JSON data found in request for simulation. !!!\n")
+                 return jsonify({'message': 'Error: Invalid JSON or Content-Type header. Expecting detailed plan data.'}), 400
 
             # 4. Call Simulation
             print("\n>>> Calling calculate_scenarios...")
