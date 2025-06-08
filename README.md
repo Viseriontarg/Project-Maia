@@ -1,4 +1,4 @@
-# BusinessDigitalTwin: AI-Powered Project Planning and Simulation
+# Maia: AI-Powered Project Planning and Simulation
 
 ## Project Title and Introduction
 
