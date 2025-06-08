@@ -2,7 +2,7 @@
 
 ## Project Title and Introduction
 
-**BusinessDigitalTwin** is a powerful project management tool that leverages generative AI and Monte Carlo simulations to transform high-level project goals into actionable plans and realistic forecasts. It helps users understand potential project durations and costs by considering inherent uncertainties and risks, ultimately enabling more informed decision-making.
+**Maia** is a powerful project management tool that leverages generative AI and Monte Carlo simulations to transform high-level project goals into actionable plans and realistic forecasts. It helps users understand potential project durations and costs by considering inherent uncertainties and risks, ultimately enabling more informed decision-making.
 
 ## Features
 
