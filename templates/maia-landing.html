@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maia - Stop Guessing. Start Simulating.</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'dark-space': '#0b0f19',
+              'light-text': '#e0e6f0',
+              'accent-blue': '#38bdf8',
+              'accent-teal': '#2dd4bf',
+              'dark-card': '#161b29',
+            }
+          }
+        }
+      }
+    </script>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body class="bg-dark-space text-light-text">
+    <div id="particles-js"></div>
+    <div id="planetary-halo" class="fixed bottom-0 left-0 right-0 h-96 pointer-events-none z-0"></div>
+    <div id="cursor-glow" class="fixed w-96 h-96 pointer-events-none z-40 opacity-0 transition-opacity duration-1000" style="transform: translate(-50%, -50%); filter: blur(100px);">
+        <div class="w-full h-full bg-gradient-radial from-accent-blue/20 via-accent-teal/10 to-transparent rounded-full"></div>
+    </div>
+    
+    <nav id="navbar" class="fixed top-0 left-0 right-0 z-50 glass-card">
+        <div class="nav-container container mx-auto flex justify-between items-center p-4">
+            <a href="#" class="logo text-2xl font-bold text-light-text">Maia</a>
+            <ul class="nav-links hidden md:flex space-x-6">
+                <li><a href="#hero" class="nav-link">Home</a></li>
+                <li><a href="#problem" class="nav-link">Challenge</a></li>
+                <li><a href="#solution" class="nav-link">Solution</a></li>
+                <li><a href="#use-cases" class="nav-link">Use Cases</a></li>
+                <li><a href="#why-us" class="nav-link">Why Us</a></li>
+                <li><a href="#cta" class="nav-link">Get Started</a></li>
+                <li><a href="#simulation" class="nav-link">Simulate</a></li>
+            </ul>
+            <div class="mobile-menu md:hidden">
+                <i class="fas fa-bars text-2xl"></i>
+            </div>
+        </div>
+    </nav>
+
+    <section id="hero" class="relative overflow-hidden min-h-screen flex items-center justify-center py-32">
+        <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-br from-accent-blue to-transparent rounded-full -z-10 blur-3xl opacity-20 animate-drift"></div>
+        <div class="text-center max-w-4xl px-4 z-10">
+            <h1 class="text-7xl md:text-8xl font-bold leading-tight">Give Birth to a Better Project Plan.</h1>
+            <p class="text-xl md:text-2xl text-light-text/80 my-10 max-w-3xl mx-auto">Maia uses AI-driven simulation to turn your project's uncertainty into a clear, actionable forecast. Mitigate risks, optimize strategies, and build with confidence.</p>
+            <a href="#simulation" class="cta-button inline-block">Request a Free Consultation</a>
+        </div>
+    </section>
+
+    <section id="simulation" class="simulation-section py-32">
+        <div class="container mx-auto px-4">
+            <div class="section-header text-center mb-12 max-w-2xl mx-auto">
+                <h2 class="text-4xl md:text-5xl font-bold">Create Your Workspace</h2>
+                <p class="text-lg md:text-xl mt-4 text-light-text/70">Input your project parameters and generate a comprehensive simulation report with risk analysis and forecasting.</p>
+            </div>
+            
+            <div class="simulation-form-container max-w-3xl mx-auto glass-card p-8 rounded-xl">
+                <form id="simulation-form" class="simulation-form space-y-6">
+                    <div class="simulation-form-group">
+                        <label for="project-name" class="form-label">Project Name:</label>
+                        <input type="text" id="project-name" name="projectName" required maxlength="100" class="form-input">
+                        <span class="error-message" id="project-name-error" role="alert"></span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="simulation-form-group">
+                            <label for="base-cost" class="form-label">Base Cost Estimate ($):</label>
+                            <input type="number" id="base-cost" name="baseCost" required min="0" step="0.01" class="form-input">
+                            <span class="error-message" id="base-cost-error" role="alert"></span>
+                        </div>
+                        
+                        <div class="simulation-form-group">
+                            <label for="base-duration" class="form-label">Base Duration (Days):</label>
+                            <input type="number" id="base-duration" name="baseDuration" required min="1" step="1" class="form-input">
+                            <span class="error-message" id="base-duration-error" role="alert"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="simulation-form-group">
+                        <label for="project-type" class="form-label">Project Type:</label>
+                        <select id="project-type" name="projectType" required class="form-input">
+                            <option value="">--Please choose an option--</option>
+                            <option value="Software Development">Software Development</option>
+                            <option value="Infrastructure Rollout">Infrastructure Rollout</option>
+                            <option value="Marketing Campaign">Marketing Campaign</option>
+                            <option value="Construction Project">Construction Project</option>
+                            <option value="Research & Development">Research & Development</option>
+                            <option value="Business Process Change">Business Process Change</option>
+                        </select>
+                        <span class="error-message" id="project-type-error" role="alert"></span>
+                    </div>
+                    
+                    <button type="submit" id="run-simulation-button" class="cta-button w-full">
+                        Create My AI-Drafted Plan
+                    </button>
+                </form>
+                
+                <div id="status-message" class="status-message mt-6 text-center">
+                    Ready to simulate.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="review-plan-section" class="py-32" style="display: none;">
+        <div class="container mx-auto px-4">
+            <div class="section-header text-center mb-12 max-w-2xl mx-auto">
+                <h2 class="text-4xl md:text-5xl font-bold text-light-text">Review & Refine Your Project Plan</h2>
+                <p class="text-lg md:text-xl mt-4 text-light-text/70">This is the AI-generated plan based on your inputs. Adjust tasks and risks as needed before running the final simulation.</p>
+            </div>
+            
+            <div class="review-grid grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div id="review-tasks-container">
+                    <h3 class="text-2xl font-bold text-light-text mb-6">Project Tasks</h3>
+                    <div id="tasks-list">
+                    </div>
+                </div>
+                
+                <div id="review-risks-container">
+                    <h3 class="text-2xl font-bold text-light-text mb-6">Project Risks</h3>
+                    <div id="risks-list">
+                    </div>
+                    <button id="add-risk-button" class="add-item-button mt-4 w-full">Add New Risk</button>
+                </div>
+            </div>
+            
+            <div id="review-status-message" class="status-message mt-8 text-center text-light-text"></div>
+            <div class="text-center mt-8">
+                <button id="run-simulation-final-button" class="cta-button">Run Simulation on This Plan</button>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="relative overflow-hidden py-32">
+        <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gradient-to-tl from-accent-teal to-transparent rounded-full -z-10 blur-3xl opacity-20 animate-drift"></div>
+        <div class="container mx-auto px-4">
+            <h2 class="text-4xl md:text-5xl font-bold text-center mb-16">From a Simple Idea to a Full Forecast in Minutes</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="glass-card rounded-xl p-8 text-center transition-all duration-300 hover:transform hover:scale-105">
+                    <div class="flex justify-center mb-6">
+                        <i class="fa-solid fa-lightbulb text-5xl text-accent-teal"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold my-4">1. Define Your Project</h3>
+                    <p class="text-light-text/70">Start with the basics: your project's name, estimated budget, and timeline. Our AI uses this as the seed for its analysis.</p>
+                </div>
+                <div class="glass-card rounded-xl p-8 text-center transition-all duration-300 hover:transform hover:scale-105">
+                    <div class="flex justify-center mb-6">
+                        <i class="fa-solid fa-microchip text-5xl text-accent-teal"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold my-4">2. AI-Drafted Plan</h3>
+                    <p class="text-light-text/70">Maia generates a detailed project plan, complete with tasks, phases, and relevant risks, tailored to your project type.</p>
+                </div>
+                <div class="glass-card rounded-xl p-8 text-center transition-all duration-300 hover:transform hover:scale-105">
+                    <div class="flex justify-center mb-6">
+                        <i class="fa-solid fa-chart-line text-5xl text-accent-teal"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold my-4">3. Simulate & Forecast</h3>
+                    <p class="text-light-text/70">Run thousands of simulations on your plan to get a clear forecast of your project's future cost and schedule, visualized in an actionable report.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="why-us" class="py-32">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">Beyond Spreadsheets: True Dynamic Insight</h2>
+                <p class="text-xl md:text-2xl text-light-text/70">Why Maia delivers results where traditional planning falls short.</p>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="glass-card rounded-xl p-6 text-center transition-all duration-300 hover:transform hover:scale-105">
+                    <div class="mb-6">
+                        <i class="fas fa-user-tie text-5xl text-accent-teal"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Expert Guidance</h3>
+                    <p class="text-light-text/70">We blend deep PM and business acumen with cutting-edge simulation technology to deliver insights that matter.</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 text-center transition-all duration-300 hover:transform hover:scale-105">
+                    <div class="mb-6">
+                        <i class="fas fa-puzzle-piece text-5xl text-accent-teal"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Custom Models</h3>
+                    <p class="text-light-text/70">Every business is unique. Our simulations are tailored specifically to your challenges, constraints, and goals.</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 text-center transition-all duration-300 hover:transform hover:scale-105">
+                    <div class="mb-6">
+                        <i class="fas fa-chart-pie text-5xl text-accent-teal"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Clear Visualizations</h3>
+                    <p class="text-light-text/70">Complex data transformed into insights you can understand and act on immediately. No PhD required.</p>
+                </div>
+                <div class="glass-card rounded-xl p-6 text-center transition-all duration-300 hover:transform hover:scale-105">
+                    <div class="mb-6">
+                        <i class="fas fa-lock text-5xl text-accent-teal"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Confidential & Secure</h3>
+                    <p class="text-light-text/70">Your data is your most valuable asset. We maintain enterprise-grade security and strict confidentiality.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="cta" class="py-32">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold mb-4">Ready to See Your Future More Clearly?</h2>
+                <p class="text-xl md:text-2xl text-light-text/70">Let's explore how Maia can help you tackle your most pressing challenges. Schedule a no-obligation consultation today.</p>
+            </div>
+            
+            <div class="max-w-3xl mx-auto">
+                <form id="consultation-form" class="glass-card p-8 rounded-xl">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="form-group">
+                            <label for="name" class="form-label">Name</label>
+                            <input type="text" id="name" name="name" required class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" id="email" name="email" required class="form-input">
+                        </div>
+                        <div class="form-group md:col-span-2">
+                            <label for="company" class="form-label">Company</label>
+                            <input type="text" id="company" name="company" required class="form-input">
+                        </div>
+                        <div class="form-group md:col-span-2">
+                            <label for="challenge" class="form-label">Brief Description of Challenge (Optional)</label>
+                            <textarea id="challenge" name="challenge" rows="3" placeholder="Tell us about your current decision-making challenge..." class="form-input"></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="cta-button w-full">Schedule My Consultation</button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="glass-footer py-12">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-center space-x-6 mb-6">
+                <a href="#" class="footer-link">Privacy Policy</a>
+                <a href="#" class="footer-link">Terms of Service</a>
+                <a href="#" class="footer-link">Contact</a>
+            </div>
+            <p class="text-center text-light-text/50">&copy; 2024 Maia. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tsparticles@3.4.0/tsparticles.bundle.min.js"></script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

@@ -13,7 +13,7 @@ app = Flask(__name__)
 CORS(app)
 
 # --- Constants for Validation ---
-# Define valid project types as per decisonscope-landing.html
+
 VALID_PROJECT_TYPES = {
     "Software Development",
     "Infrastructure Rollout",
@@ -30,12 +30,8 @@ MAX_PROJECT_NAME_LENGTH = 100
 
 @app.route('/', methods=['GET'])
 def landing_page():
-    """
-    Serves the HTML landing page.
-    Assumes 'decisonscope-landing.html' is in a 'templates' folder
-    in the same directory as app.py.
-    """
-    return render_template('decisonscope-landing.html')
+  
+    return render_template('maia-landing.html')
 
 @app.route('/generate-plan', methods=['POST'])
 def generate_plan():
@@ -203,8 +199,8 @@ def run_simulation():
 if __name__ == '__main__':
     if not os.path.exists("templates"):
         os.makedirs("templates")
-    if not os.path.exists("templates/decisonscope-landing.html"):
-        with open("templates/decisonscope-landing.html", "w") as f:
+    if not os.path.exists("templates/maia-landing.html"):
+        with open("templates/maia-landing.html", "w") as f:
             f.write("""<!DOCTYPE html>
 <html lang="en">
 <head>
