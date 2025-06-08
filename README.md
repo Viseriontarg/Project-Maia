@@ -19,7 +19,7 @@
     *   Potential risks, each with an estimated probability of occurrence and impact on duration and/or cost.
 3.  **Monte Carlo Simulation**: The detailed JSON plan is passed to the simulation module (`simulation.py`). This module runs a Monte Carlo simulation, performing many iterations (e.g., 10,000+) to model the range of potential project outcomes based on the PERT distribution for task durations and the defined risks.
 4.  **Report Generation**: The results from the simulation, including statistical measures like P10 (optimistic), P50 (most likely), and P90 (pessimistic) for both total project duration and cost, are compiled. The `report_generator.py` module then creates a formatted Excel report summarizing these findings and highlighting key risk drivers.
-5.  **Output**: The user receives a confirmation, and the Excel report is saved to the server, typically in an `outputs` directory.
+5.  **Output**: The user receives a confirmation, and the Excel report is saved to the server, typically in an `generated_reports` directory.
 
 ## Project Structure
 
@@ -27,8 +27,8 @@
 -   `ai_breakdown.py`: Contains the logic for interacting with the Google Gemini API. It takes high-level project information and prompts the AI to produce a detailed, structured JSON project plan with tasks, durations (optimistic, most-likely, pessimistic), and risks (probability, impact).
 -   `simulation.py`: Performs the Monte Carlo simulation. It takes the detailed project plan (JSON) as input, simulates project execution many times using PERT distributions for task durations and incorporating specified risks, and calculates overall project duration and cost distributions.
 -   `report_generator.py`: Takes the raw simulation results and the initial project input data to create a well-formatted Excel report. This report includes summary statistics (P10, P50, P90 for cost and duration), and often visualizations or tables showing risk impacts.
--   `templates/decisonscope-landing.html`: The HTML frontend that provides the user interface for inputting initial project details.
--   `outputs/`: (Typically created by the application) Directory where generated Excel reports are stored.
+-   `templates/maia-landing.html`: The HTML frontend that provides the user interface for inputting initial project details.
+-   `generated_reports/`: (Typically created by the application) Directory where generated Excel reports are stored.
 -   `.env`: (User-created) File to store sensitive credentials like the API key.
 
 ## Setup and Running the Project
@@ -80,7 +80,7 @@
 The application provides the following API endpoints:
 
 -   **`GET /`**:
-    -   Description: Serves the main landing page (`decisonscope-landing.html`) where users can input project details.
+    -   Description: Serves the main landing page (`maia-landing.html`) where users can input project details.
     -   Response: HTML content of the landing page.
 
 -   **`POST /generate-plan`**:
@@ -131,8 +131,8 @@ The application provides the following API endpoints:
     -   Response (JSON): A success message indicating the path to the generated Excel report.
         ```json
         {
-            "message": "Simulation complete. Report generated at outputs/New_Marketing_Campaign_simulation_report.xlsx",
-            "report_path": "outputs/New_Marketing_Campaign_simulation_report.xlsx"
+            "message": "Simulation complete. Report generated at generated_reports/New_Marketing_Campaign_simulation_report.xlsx",
+            "report_path": "generated_reports/New_Marketing_Campaign_simulation_report.xlsx"
         }
         ```
         (The exact filename will vary based on the project name and timestamp).
